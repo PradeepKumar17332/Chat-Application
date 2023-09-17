@@ -1,0 +1,75 @@
+<div class="container-fluid">
+
+    <div class="row">
+  
+      <div class="col-md-4">
+  
+        <div class="user-list-card">
+          <div class="user-card"
+               [ngClass]="user?.phone_num === selectedUser?.phone_num && 'active'"
+               *ngFor="let user of userList"
+               (click)="selectUserHandler(user?.phone_num)"
+          >
+  
+            <img [src]="user?.image"
+                 [alt]="user?.username"
+                 class="avatar"
+            />
+            <p class="username">{{user?.username}}</p>
+  
+          </div>
+        </div>
+  
+      </div>
+      <div class="col-md-8">
+  
+        <div class="chat-container">
+          <ng-container *ngIf="selectedUser">
+            <div class="chat-header">
+  
+              <img [src]="selectedUser?.image"
+                   [alt]="selectedUser?.username"
+                   class="avatar"
+              />
+              <p class="username">{{selectedUser?.username}}</p>
+  
+            </div>
+  
+            <div class="chat-body">
+              <div *ngFor="let item of messageArray"
+                   [ngClass]="item?.user === currentUser?.username && 'same-user'"
+              >
+                <p class="message-container">{{item?.message}}</p>
+              </div>
+            </div>
+  
+            <div class="chat-footer">
+  
+              <div class="row">
+                <div class="col-md-10">
+                  <div class="form-group mb-0">
+                    <input type="text"
+                           placeholder="Type a message"
+                           class="form-control"
+                           [(ngModel)]="messageText"
+                           (keyup)="$event.keyCode === 13 && sendMessage()"
+                    />
+                  </div>
+                </div>
+  
+                <div class="col-md-2 text-center align-self-center">
+                  <button class="btn btn-primary btn-sm px-3"
+                          (click)="sendMessage()">Send
+                  </button>
+                </div>
+              </div>
+  
+            </div>
+          </ng-container>
+        </div>
+  
+      </div>
+  
+    </div>
+  
+  </div>

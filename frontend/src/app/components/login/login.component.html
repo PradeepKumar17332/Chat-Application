@@ -1,0 +1,35 @@
+<ng-template #popup let-d="dismiss" *ngIf="!showScreen">
+
+    <div class="modal-header">
+      <h4 class="modal-title">Login</h4>
+    </div>
+  
+    <div class="modal-body">
+  
+      <div class="row">
+        <div class="col-md-12">
+  
+          <div class="form-group">
+            <input type="number" placeholder="Enter your phone number" class="form-control" [(ngModel)]="phone"/>
+          </div>
+  
+        </div>
+      </div>
+  
+      <div class="row">
+          <div class="col-md-12">
+    
+            <div class="form-group">
+              <input type="text" placeholder="Enter your password" class="form-control" [(ngModel)]="pswd"/>
+            </div>
+    
+          </div>
+        </div>
+  
+    </div>
+  
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-primary" (click)="login(d)">Login</button>
+    </div>
+  
+  </ng-template>
