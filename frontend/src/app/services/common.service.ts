@@ -30,7 +30,7 @@ export class CommonService {
 			.set("cookie",<string>localStorage.getItem("chatapp_cookie"))
 			.set("user1",user1)
 			.set("user2", user2);
-		return this.http.post<any>(this.baseurl + "user/getAllMessages", param).toPromise();
+		return this.http.post<any>(this.baseurl + "messages/getAllMessages", param).toPromise();
 	}
 
 	logout(){

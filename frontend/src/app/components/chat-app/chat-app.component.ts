@@ -21,52 +21,7 @@ export class ChatAppComponent implements OnInit {
 	public currentUser;
 	public selectedUser;
 	public userdata;
-	// public userList = [
-	// 	{
-	// 		id: 1,
-	// 		name: 'The Swag Coder',
-	// 		phone: '9876598765',
-	// 		image: 'assets/user/user-1.png',
-	// 		roomId: {
-	// 			2: 'room-1',
-	// 			3: 'room-2',
-	// 			4: 'room-3'
-	// 		}
-	// 	},
-	// 	{
-	// 		id: 2,
-	// 		name: 'Wade Warren',
-	// 		phone: '9876543210',
-	// 		image: 'assets/user/user-2.png',
-	// 		roomId: {
-	// 			1: 'room-1',
-	// 			3: 'room-4',
-	// 			4: 'room-5'
-	// 		}
-	// 	},
-	// 	{
-	// 		id: 3,
-	// 		name: 'Albert Flores',
-	// 		phone: '9988776655',
-	// 		image: 'assets/user/user-3.png',
-	// 		roomId: {
-	// 			1: 'room-2',
-	// 			2: 'room-4',
-	// 			4: 'room-6'
-	// 		}
-	// 	},
-	// 	{
-	// 		id: 4,
-	// 		name: 'Dianne Russell',
-	// 		phone: '9876556789',
-	// 		image: 'assets/user/user-4.png',
-	// 		roomId: {
-	// 			1: 'room-3',
-	// 			2: 'room-5',
-	// 			3: 'room-6'
-	// 		}
-	// 	}
-	// ];
+	public user_id_config = {};
 	public userList = [];
 	constructor(
 		private modalService: NgbModal,
@@ -77,20 +32,11 @@ export class ChatAppComponent implements OnInit {
 	ngOnInit(): void {
 		console.log("in the chat component");
 		this.initial()
-		// this.phone = '9876598765';
-		// this.currentUser = this.userList.find(user => user.phone === this.phone.toString());
-		// this.userList = this.userList.filter((user) => user.phone !== this.phone.toString());
-		// console.log(this.currentUser, this.userList);
 
-		this.chatService.getMessage().subscribe((data: { user: string, room: string, message: string }) => {
-			// this.messageArray.push(data);
-			if (this.roomId) {
-				setTimeout(() => {
-					this.storageArray = this.chatService.getStorage();
-					const storeIndex = this.storageArray
-					.findIndex((storage) => storage.roomId === this.roomId);
-					this.messageArray = this.storageArray[storeIndex].chats;
-				}, 500);
+		this.chatService.getMessage().subscribe((data: any) => {
+			console.log("new message", data);
+			if(this.roomId == data.room){
+				this.messageArray.push(data);
 			}
 		});
 	}
@@ -107,6 +53,11 @@ export class ChatAppComponent implements OnInit {
 				if('room_ids' in resp) this.currentUser['roomId'] = resp['room_ids'];
 				this.userList = resp['data'];
 				console.log(this.currentUser, this.userList);
+				for (let index = 0; index < this.userList.length; index++) {
+					const element = this.userList[index];
+					this.user_id_config[element.id] = element;
+				}
+				this.user_id_config[this.currentUser.id] = this.userdata
 			}else{
 				alert("Users not found.");
 				this.userList = [];
@@ -117,49 +68,33 @@ export class ChatAppComponent implements OnInit {
 		})
 	}
 
-	openPopup(content: any): void {
-		this.modalService.open(content, {backdrop: 'static', centered: true});
-	}
+	selectUserHandler(phone: string): void {
+		this.selectedUser = this.userList.find(user => user.phone_num === phone);
+		console.log(this.selectedUser, this.currentUser);
 
-	login(dismiss: any): void {
-		let num = this.phone.toString();
-		let pswd = this.pswd.toString();
-		if(!num || !pswd){
-			alert("Please fill the required fields");
-			return;
-		}
+		this.roomId = this.currentUser.roomId[this.selectedUser.id];
+		this.messageArray = [];
 
-		// this.commonService.login(num, pswd).then(resp => {
-		this.commonService.login('1234567890', 'abc').then(resp => {
-			console.log("User login resp", resp);
+		this.commonService.getAllMessages(this.currentUser.id, this.selectedUser.id).then(resp => {
+			console.log("User getAllMessages", resp, this.user_id_config);
 			if(resp.result == "success"){
-				localStorage.setItem("chatapp_user_id", resp.data[0].id);
-				localStorage.setItem("chatapp_cookie", resp.data[0].cookie);
-				localStorage.setItem("chatapp_user_data", JSON.stringify(resp.data[0]));
-				// this.route.navigate(["/todolist"]);
+				let msgsConversation = resp['data'];
+				for (let index = 0; index < msgsConversation.length; index++) {
+					const element = msgsConversation[index];
+					msgsConversation[index]['user'] = this.user_id_config[element['from_user']].username;
+					msgsConversation[index]['message'] = element['text'];
+				}
+				msgsConversation.sort((a:any, b:any) => new Date(a.created_at) - new Date(b.created_at));
+				console.log("message: ", msgsConversation);
+				this.messageArray = msgsConversation;
 			}else{
-				alert("User not found. Please give right creds.");
-				return;
+				alert("Users not found.");
+				this.userList = [];
 			}
 		}).catch(err => {
 			alert("Got error while processing the request. Please try again.");
 			console.log("Error", err);
 		})
-		this.currentUser = this.userList.find(user => user.phone === this.phone.toString());
-		this.userList = this.userList.filter((user) => user.phone !== this.phone.toString());
-
-		if (this.currentUser) {
-			this.showScreen = true;
-			dismiss();
-		}
-	}
-
-	selectUserHandler(phone: string): void {
-		this.selectedUser = this.userList.find(user => user.phone_num === phone);
-		console.log(this.selectedUser, this.currentUser);
-		
-		this.roomId = this.currentUser.roomId[this.selectedUser.id];
-		this.messageArray = [];
 
 		this.storageArray = this.chatService.getStorage();
 		const storeIndex = this.storageArray.findIndex((storage) => storage.roomId === this.roomId);
@@ -179,30 +114,10 @@ export class ChatAppComponent implements OnInit {
 		this.chatService.sendMessage({
 			user: this.currentUser.username,
 			room: this.roomId,
-			message: this.messageText
+			message: this.messageText,
+			from_user: this.currentUser.id,
+			to_user: this.selectedUser.id
 		});
-
-		this.storageArray = this.chatService.getStorage();
-		const storeIndex = this.storageArray.findIndex((storage) => storage.roomId === this.roomId);
-
-		if (storeIndex > -1) {
-			this.storageArray[storeIndex].chats.push({
-				user: this.currentUser.username,
-				message: this.messageText
-			});
-		} else {
-			const updateStorage = {
-				roomId: this.roomId,
-				chats: [{
-				user: this.currentUser.username,
-				message: this.messageText
-				}]
-			};
-
-			this.storageArray.push(updateStorage);
-		}
-
-		this.chatService.setStorage(this.storageArray);
 		this.messageText = '';
 	}
 

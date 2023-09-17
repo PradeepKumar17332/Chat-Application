@@ -28,7 +28,9 @@ io.on('connection', (socket) => {
 
     socket.on('message', (data) => {
         console.log('data in "message": ', data);
-        io.in(data.room).emit('new message', {user: data.user, message: data.message});
+        commonService.addMessage(data.from_user, data.to_user, data.message);
+        // io.in(data.room).emit('new message', {user: data.user, message: data.message});
+        io.in(data.room).emit('new message', data);
     });
 });
 // var corsOptions = {
